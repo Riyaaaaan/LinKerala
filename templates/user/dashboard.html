@@ -1,0 +1,1008 @@
+{% extends 'base.html' %} {% block title %}Dashboard - LocalFreelance AI
+{%endblock %} {% block content %}
+<div class="dashboard">
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>Client Dashboard</h1>
+      <a href="/inbox/" class="btn btn-primary">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+        Inbox
+      </a>
+    </div>
+
+    <div class="dashboard-grid dashboard-grid-full">
+      <!-- Post New Work Section -->
+      <div class="dashboard-card dashboard-card-wide">
+        <div class="card-header">
+          <h3>Your Posted Work</h3>
+          <button id="show-post-work-form-btn" class="btn btn-primary btn-sm">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Post Work
+          </button>
+        </div>
+
+        <!-- Hidden Post Work Form -->
+        <div
+          id="post-work-form-container"
+          class="work-form-container"
+          style="display: none"
+        >
+          <form id="post-work-form" class="work-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="work-title">Title</label>
+                <input
+                  type="text"
+                  id="work-title"
+                  name="title"
+                  required
+                  placeholder="e.g., Build a website"
+                />
+              </div>
+              <div class="form-group">
+                <label for="work-category">Category</label>
+                <input
+                  type="text"
+                  id="work-category"
+                  name="category"
+                  placeholder="e.g., Web Development"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="work-description">Description</label>
+              <textarea
+                id="work-description"
+                name="description"
+                rows="4"
+                required
+                placeholder="Describe the work in detail..."
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="work-pay">Pay per Hour ($)</label>
+                <input
+                  type="number"
+                  id="work-pay"
+                  name="pay_per_hour"
+                  step="0.01"
+                  min="0"
+                  required
+                  placeholder="e.g., 50.00"
+                />
+              </div>
+              <div class="form-group">
+                <label for="work-duration">Duration Value</label>
+                <input
+                  type="number"
+                  id="work-duration"
+                  name="duration_value"
+                  min="1"
+                  required
+                  placeholder="e.g., 10"
+                />
+              </div>
+              <div class="form-group">
+                <label for="work-duration-unit">Duration Unit</label>
+                <select id="work-duration-unit" name="duration_unit">
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                  <option value="months">Months</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="work-location">Location</label>
+                <input
+                  type="text"
+                  id="work-location"
+                  name="location"
+                  placeholder="e.g., New York, NY"
+                />
+              </div>
+              <div class="form-group">
+                <label for="work-skills">Skills (comma-separated)</label>
+                <input
+                  type="text"
+                  id="work-skills"
+                  name="skills"
+                  placeholder="e.g., Python, Django, React"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="work-show-contact"
+                  name="show_contact_info"
+                  checked
+                />
+                <span>Show my contact info to freelancers</span>
+              </label>
+              <p class="form-help">
+                When enabled, freelancers can see your phone number to contact
+                you about this work.
+              </p>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                id="cancel-post-work-btn"
+                class="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">Post Work</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="client-works" class="work-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Edit Work Modal - Placed outside dashboard-card -->
+      <div id="edit-work-modal" class="modal" style="display: none">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Edit Work</h3>
+            <button type="button" class="modal-close" id="edit-modal-close-btn">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <form id="edit-work-form" class="work-form">
+            <input type="hidden" id="edit-work-id" name="work_id" />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-work-title">Title</label>
+                <input
+                  type="text"
+                  id="edit-work-title"
+                  name="title"
+                  required
+                  placeholder="e.g., Build a website"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edit-work-category">Category</label>
+                <input
+                  type="text"
+                  id="edit-work-category"
+                  name="category"
+                  placeholder="e.g., Web Development"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-work-status">Status</label>
+              <select id="edit-work-status" name="status" required>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-work-description">Description</label>
+              <textarea
+                id="edit-work-description"
+                name="description"
+                rows="4"
+                required
+                placeholder="Describe the work in detail..."
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-work-pay">Pay per Hour ($)</label>
+                <input
+                  type="number"
+                  id="edit-work-pay"
+                  name="pay_per_hour"
+                  step="0.01"
+                  min="0"
+                  required
+                  placeholder="e.g., 50.00"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edit-work-duration">Duration Value</label>
+                <input
+                  type="number"
+                  id="edit-work-duration"
+                  name="duration_value"
+                  min="1"
+                  required
+                  placeholder="e.g., 10"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edit-work-duration-unit">Duration Unit</label>
+                <select id="edit-work-duration-unit" name="duration_unit">
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                  <option value="months">Months</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-work-location">Location</label>
+                <input
+                  type="text"
+                  id="edit-work-location"
+                  name="location"
+                  placeholder="e.g., New York, NY"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edit-work-skills">Skills (comma-separated)</label>
+                <input
+                  type="text"
+                  id="edit-work-skills"
+                  name="skills"
+                  placeholder="e.g., Python, Django, React"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="edit-work-show-contact"
+                  name="show_contact_info"
+                />
+                <span>Show my contact info to freelancers</span>
+              </label>
+              <p class="form-help">
+                When enabled, freelancers can see your phone number to contact
+                you about this work.
+              </p>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                id="cancel-edit-work-btn"
+                class="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="dashboard-card dashboard-card-wide">
+        <div class="card-header">
+          <h3>Recommended for You</h3>
+          <a href="/search/" class="btn btn-outline btn-sm">Browse All</a>
+        </div>
+        <div id="recommendations" class="freelancer-cards-grid">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+
+      <div class="dashboard-card dashboard-card-wide">
+        <div class="card-header">
+          <h3>Your Bookmarks</h3>
+          <a href="/bookmarks/" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        <div id="bookmarks" class="freelancer-cards-grid">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>Recent Searches</h3>
+        <div id="recent-searches">
+          <p class="text-muted">No recent searches</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .dashboard-header .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  .form-help {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    margin-left: 24px;
+  }
+
+  /* Modal styles */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .modal[style*="display: none"] {
+    display: none !important;
+  }
+
+  .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover {
+    color: #374151;
+  }
+
+  /* Work card actions */
+  .work-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .work-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+
+  .btn-icon:hover {
+    cursor: pointer;
+  }
+
+  .btn-edit {
+    color: #3b82f6;
+  }
+
+  .btn-edit:hover {
+    background-color: #eff6ff;
+  }
+
+  .btn-delete {
+    color: #ef4444;
+  }
+
+  .btn-delete:hover {
+    background-color: #fef2f2;
+  }
+
+  /* Confirmation modal */
+  .confirm-modal-text {
+    margin-bottom: 20px;
+    color: #374151;
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  // Render work card
+  function renderWorkCard(work) {
+    const statusClass =
+      work.status === "open"
+        ? "status-open"
+        : work.status === "in_progress"
+          ? "status-progress"
+          : work.status === "completed"
+            ? "status-completed"
+            : "status-cancelled";
+    const statusLabel =
+      work.status === "open"
+        ? "Open"
+        : work.status === "in_progress"
+          ? "In Progress"
+          : work.status === "completed"
+            ? "Completed"
+            : "Cancelled";
+
+    const skillsHtml =
+      work.skills && work.skills.length > 0
+        ? work.skills.map((s) => `<span class="skill-tag">${s}</span>`).join("")
+        : '<span class="text-muted">No skills specified</span>';
+
+    return `
+        <div class="work-card" data-work-id="${work.id}">
+            <div class="work-card-header">
+                <h4>${work.title}</h4>
+                <div class="work-card-actions">
+                    <span class="work-status ${statusClass}">${statusLabel}</span>
+                    <button class="btn-icon btn-edit" data-work-id="${work.id}" title="Edit">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-icon btn-delete" data-work-id="${work.id}" title="Delete">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <p class="work-category">${work.category || "Uncategorized"}</p>
+            <p class="work-description">${work.description.substring(0, 150)}${work.description.length > 150 ? "..." : ""}</p>
+            <div class="work-details">
+                <span class="work-pay">$${parseFloat(work.pay_per_hour).toFixed(2)}/hr</span>
+                <span class="work-duration">${work.duration_value} ${work.duration_unit}</span>
+                ${work.location ? `<span class="work-location">${work.location}</span>` : ""}
+            </div>
+            <div class="work-skills">${skillsHtml}</div>
+            <div class="work-meta">
+                <span>Posted: ${new Date(work.created_at).toLocaleDateString()}</span>
+            </div>
+        </div>
+    `;
+  }
+
+  // Load client's posted work
+  async function loadClientWorks() {
+    const token = AuthManager.getAccessToken();
+    if (!token) {
+      document.getElementById("client-works").innerHTML =
+        '<p class="text-muted">Please login to view your posted work</p>';
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/works/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const works = await res.json();
+        if (works.length > 0) {
+          document.getElementById("client-works").innerHTML = works
+            .map(renderWorkCard)
+            .join("");
+          attachWorkCardListeners();
+        } else {
+          document.getElementById("client-works").innerHTML =
+            '<p class="text-muted">No work posted yet. Click "Post Work" to create your first listing!</p>';
+        }
+      } else {
+        document.getElementById("client-works").innerHTML =
+          '<p class="text-muted">Error loading works: ' + res.status + "</p>";
+      }
+    } catch (error) {
+      console.error("Error loading works:", error);
+      document.getElementById("client-works").innerHTML =
+        '<p class="text-muted">Error loading works</p>';
+    }
+  }
+
+  // Attach click listeners to work card buttons
+  function attachWorkCardListeners() {
+    document.querySelectorAll(".btn-edit").forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const workId = this.getAttribute("data-work-id");
+        console.log("Edit button clicked, workId:", workId);
+        openEditWorkModal(workId);
+      });
+    });
+    document.querySelectorAll(".btn-delete").forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const workId = this.getAttribute("data-work-id");
+        confirmDeleteWork(workId);
+      });
+    });
+  }
+
+  // Open edit work modal
+  async function openEditWorkModal(workId) {
+    console.log("Opening edit modal for work:", workId);
+
+    // Validate workId first
+    if (!workId || workId === "undefined" || workId === "null") {
+      showToast("Error: Invalid work ID", "error");
+      console.error("Invalid workId provided:", workId);
+      return;
+    }
+
+    const token = AuthManager.getAccessToken();
+    if (!token) {
+      showToast("You are not logged in. Please login first.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/auth/works/${workId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const work = await res.json();
+        console.log("Work data loaded:", work);
+
+        // Use the workId parameter directly instead of work.id to ensure it's always set
+        const workIdInput = document.getElementById("edit-work-id");
+        if (!workIdInput) {
+          console.error("ERROR: edit-work-id input element not found!");
+          showToast("Error: Form element not found", "error");
+          return;
+        }
+
+        workIdInput.value = workId;
+        console.log("Work ID set in hidden input:", workIdInput.value);
+
+        document.getElementById("edit-work-title").value = work.title || "";
+        document.getElementById("edit-work-category").value =
+          work.category || "";
+        document.getElementById("edit-work-status").value =
+          work.status || "open";
+        document.getElementById("edit-work-description").value =
+          work.description || "";
+        document.getElementById("edit-work-pay").value =
+          work.pay_per_hour || "";
+        document.getElementById("edit-work-duration").value =
+          work.duration_value || "";
+        document.getElementById("edit-work-duration-unit").value =
+          work.duration_unit || "hours";
+        document.getElementById("edit-work-location").value =
+          work.location || "";
+        document.getElementById("edit-work-skills").value = work.skills
+          ? work.skills.join(", ")
+          : "";
+        document.getElementById("edit-work-show-contact").checked =
+          work.show_contact_info || false;
+
+        document.getElementById("edit-work-modal").style.display = "flex";
+
+        // Double-check the value is still set after showing modal
+        console.log(
+          "Modal opened, work ID confirmed:",
+          document.getElementById("edit-work-id").value,
+        );
+      } else {
+        console.error("Failed to load work:", res.status);
+        showToast("Failed to load work details", "error");
+      }
+    } catch (error) {
+      console.error("Error loading work:", error);
+      showToast("Error loading work details", "error");
+    }
+  }
+
+  // Close edit work modal
+  function closeEditWorkModal() {
+    const modal = document.getElementById("edit-work-modal");
+    if (modal) {
+      modal.style.display = "none";
+    }
+    // Clear form completely when closing
+    const form = document.getElementById("edit-work-form");
+    if (form) {
+      form.reset();
+    }
+  }
+
+  // Confirm delete work
+  function confirmDeleteWork(workId) {
+    if (
+      confirm(
+        "Are you sure you want to delete this work posting? This action cannot be undone.",
+      )
+    ) {
+      deleteWork(workId);
+    }
+  }
+
+  // Delete work
+  async function deleteWork(workId) {
+    const token = AuthManager.getAccessToken();
+    if (!token) {
+      showToast("You are not logged in. Please login first.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/auth/works/${workId}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        showToast("Work deleted successfully!", "success");
+        loadClientWorks();
+      } else {
+        showToast("Failed to delete work", "error");
+      }
+    } catch (error) {
+      console.error("Error deleting work:", error);
+      showToast("Error deleting work", "error");
+    }
+  }
+
+  // Initialize everything on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    // Load dashboard data
+    if (AuthManager.isAuthenticated()) {
+      loadClientWorks();
+    }
+
+    // Load recommendations (AI-powered if authenticated, otherwise trending)
+    const token = AuthManager.getAccessToken();
+    const recommendationsUrl = token
+      ? "/api/search/recommendations/"
+      : "/api/search/freelancers/";
+
+    const recommendationsFetch = token
+      ? fetch(recommendationsUrl, { headers: { Authorization: `Bearer ${token}` } })
+      : fetch(recommendationsUrl);
+
+    recommendationsFetch
+      .then((res) => res.json())
+      .then((data) => {
+        const freelancers = data.results || [];
+        if (freelancers.length > 0) {
+          document.getElementById("recommendations").innerHTML = freelancers
+            .map(
+              (f) => `
+            <a href="/freelancer/${f.username}/" class="freelancer-card">
+                <div class="freelancer-card-image">
+                    <img src="${f.profile_photo || "/static/images/default-avatar.svg"}" alt="${f.display_name}">
+                </div>
+                <div class="freelancer-card-body">
+                    <h4>${f.display_name}</h4>
+                    <p class="tagline">${f.tagline || "No tagline"}</p>
+                </div>
+            </a>
+          `,
+            )
+            .join("");
+        }
+      })
+      .catch(() => {});
+
+    // Load bookmarks if authenticated
+    if (token) {
+      fetch("/api/search/bookmarks/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const bookmarks = data.results || [];
+          if (bookmarks.length > 0) {
+            document.getElementById("bookmarks").innerHTML = bookmarks
+              .map(
+                (f) => `
+              <a href="/freelancer/${f.username}/" class="freelancer-card">
+                  <div class="freelancer-card-image">
+                      <img src="${f.profile_photo || "/static/images/default-avatar.svg"}" alt="${f.display_name}">
+                  </div>
+                  <div class="freelancer-card-body">
+                      <h4>${f.display_name}</h4>
+                  </div>
+              </a>ad
+            `,
+              )
+              .join("");
+          }
+        })
+        .catch(() => {});
+    }
+
+    // Post work form toggle
+    const showPostWorkFormBtn = document.getElementById(
+      "show-post-work-form-btn",
+    );
+    const cancelPostWorkFormBtn = document.getElementById(
+      "cancel-post-work-btn",
+    );
+    const postWorkFormContainer = document.getElementById(
+      "post-work-form-container",
+    );
+    const postWorkForm = document.getElementById("post-work-form");
+
+    if (showPostWorkFormBtn && postWorkFormContainer) {
+      showPostWorkFormBtn.addEventListener("click", () => {
+        postWorkFormContainer.style.display = "block";
+        showPostWorkFormBtn.style.display = "none";
+      });
+    }
+
+    if (cancelPostWorkFormBtn && postWorkFormContainer) {
+      cancelPostWorkFormBtn.addEventListener("click", () => {
+        postWorkFormContainer.style.display = "none";
+        if (showPostWorkFormBtn)
+          showPostWorkFormBtn.style.display = "inline-flex";
+        postWorkForm.reset();
+      });
+    }
+
+    // Post work form submission
+    if (postWorkForm) {
+      postWorkForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const token = AuthManager.getAccessToken();
+        if (!token) {
+          showToast("You are not logged in. Please login first.", "error");
+          return;
+        }
+
+        const formData = new FormData(e.target);
+        const skillsStr = formData.get("skills") || "";
+        const skills = skillsStr
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s);
+
+        const data = {
+          title: formData.get("title"),
+          description: formData.get("description"),
+          category: formData.get("category"),
+          pay_per_hour: parseFloat(formData.get("pay_per_hour")),
+          duration_value: parseInt(formData.get("duration_value")),
+          duration_unit: formData.get("duration_unit"),
+          location: formData.get("location"),
+          skills: skills,
+          show_contact_info:
+            document.getElementById("work-show-contact").checked,
+        };
+
+        try {
+          const res = await fetch("/api/auth/works/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
+            showToast("Work posted successfully!", "success");
+            e.target.reset();
+            postWorkFormContainer.style.display = "none";
+            if (showPostWorkFormBtn)
+              showPostWorkFormBtn.style.display = "inline-flex";
+            loadClientWorks();
+          } else {
+            showToast("Failed to post work", "error");
+          }
+        } catch (error) {
+          showToast("Error posting work", "error");
+        }
+      });
+    }
+
+    // Edit modal close button
+    const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
+    if (editModalCloseBtn) {
+      editModalCloseBtn.addEventListener("click", closeEditWorkModal);
+    }
+
+    // Edit modal cancel button
+    const cancelEditWorkBtn = document.getElementById("cancel-edit-work-btn");
+    if (cancelEditWorkBtn) {
+      cancelEditWorkBtn.addEventListener("click", closeEditWorkModal);
+    }
+
+    // Close modal on outside click
+    const editWorkModal = document.getElementById("edit-work-modal");
+    if (editWorkModal) {
+      editWorkModal.addEventListener("click", function (e) {
+        if (e.target === this) closeEditWorkModal();
+      });
+    }
+
+    // Close modal on Escape key
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        const modal = document.getElementById("edit-work-modal");
+        if (modal && modal.style.display === "flex") {
+          closeEditWorkModal();
+        }
+      }
+    });
+
+    // Edit form submission
+    document
+      .getElementById("edit-work-form")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        console.log("=== FORM SUBMISSION STARTED ===");
+
+        const token = AuthManager.getAccessToken();
+        if (!token) {
+          showToast("You are not logged in. Please login first.", "error");
+          return;
+        }
+
+        const workIdInput = document.getElementById("edit-work-id");
+        console.log("Work ID input element:", workIdInput);
+        const workId = workIdInput ? workIdInput.value : null;
+        console.log("Form submitted, workId from input:", workId);
+
+        if (
+          !workId ||
+          workId === "" ||
+          workId === "undefined" ||
+          workId === "null"
+        ) {
+          console.error(
+            "ERROR: Work ID is missing or invalid. Input value:",
+            workId,
+          );
+          showToast("Error: Work ID is missing", "error");
+          return;
+        }
+
+        const formData = new FormData(e.target);
+        const skillsStr = formData.get("skills") || "";
+        const skills = skillsStr
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s);
+
+        const data = {
+          title: formData.get("title"),
+          description: formData.get("description"),
+          category: formData.get("category"),
+          status: formData.get("status"),
+          pay_per_hour: parseFloat(formData.get("pay_per_hour")),
+          duration_value: parseInt(formData.get("duration_value")),
+          duration_unit: formData.get("duration_unit"),
+          location: formData.get("location"),
+          skills: skills,
+          show_contact_info: document.getElementById("edit-work-show-contact")
+            .checked,
+        };
+
+        console.log(
+          "Submitting PATCH request to /api/auth/works/" + workId + "/",
+        );
+        console.log("Data:", data);
+
+        try {
+          const res = await fetch(`/api/auth/works/${workId}/`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
+            showToast("Work updated successfully!", "success");
+            closeEditWorkModal();
+            loadClientWorks();
+          } else {
+            const errorData = await res.json();
+            console.error("Update failed:", errorData);
+            showToast("Failed to update work", "error");
+          }
+        } catch (error) {
+          console.error("Error updating work:", error);
+          showToast("Error updating work", "error");
+        }
+      });
+  });
+</script>
+{% endblock %}

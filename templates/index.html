@@ -1,0 +1,111 @@
+{% extends 'base.html' %} {% block title %}LocalFreelance AI - Find Local
+Freelancers{% endblock %} {% block content %}
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1>Find Local Talent.<br />Zero Commissions.</h1>
+      <p class="hero-subtitle">
+        Connect with photographers, tutors, designers, technicians, and more in
+        your area. AI-powered search helps you find the perfect match.
+      </p>
+
+      <div class="hero-search">
+        <input
+          type="text"
+          id="hero-search-input"
+          placeholder="Try: 'wedding photographer near downtown under $300'"
+          class="search-input"
+        />
+        <button id="hero-search-btn" class="btn btn-primary">Search</button>
+      </div>
+
+      <div class="hero-tags">
+        <span class="tag">Photography</span>
+        <span class="tag">Tutoring</span>
+        <span class="tag">Design</span>
+        <span class="tag">Video</span>
+        <span class="tag">Repair</span>
+        <span class="tag">More...</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="container">
+    <h2>Why LocalFreelance AI?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#128200;</div>
+        <h3>AI-Powered Search</h3>
+        <p>
+          Our Google Gemini AI understands natural language. Just describe what
+          you need!
+        </p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128176;</div>
+        <h3>Zero Commission</h3>
+        <p>We don't take a cut. What freelancers earn, they keep.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#127942;</div>
+        <h3>Fair Rankings</h3>
+        <p>No paid promotions. Rankings are based on quality and activity.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128241;</div>
+        <h3>Direct Connection</h3>
+        <p>Message freelancers directly. No middleman.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-content">
+      <h2>Ready to get started?</h2>
+      <p>
+        Join thousands of freelancers and clients already using LocalFreelance
+        AI.
+      </p>
+      <div class="cta-buttons">
+        <a href="/register/" class="btn btn-primary btn-lg">Find Freelancers</a>
+        <a href="/register/freelancer/" class="btn btn-outline btn-lg"
+          >Become a Freelancer</a
+        >
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %} {% block extra_js %}
+<script src="{% load static %}{% static 'js/search.js' %}"></script>
+<script>
+  // Check auth and redirect to dashboard if already logged in
+  document.addEventListener("DOMContentLoaded", async function () {
+    if (AuthManager.isAuthenticated()) {
+      try {
+        const res = await fetch("/api/auth/me/", {
+          headers: {
+            Authorization: `Bearer ${AuthManager.getAccessToken()}`,
+          },
+        });
+
+        if (res.ok) {
+          const user = await res.json();
+          // Redirect based on role
+          if (user.role === "freelancer") {
+            window.location.href = "/dashboard/freelancer/";
+          } else {
+            window.location.href = "/dashboard/client/";
+          }
+        }
+      } catch (error) {
+        // If error, stay on home page
+        console.log("Auth check failed, staying on home page");
+      }
+    }
+  });
+</script>
+{% endblock %}

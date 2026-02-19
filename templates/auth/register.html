@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - LocalFreelance AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>Create Account</h1>
+            <p class="auth-subtitle">Join as a client to find freelancers</p>
+
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password_confirm">Confirm Password</label>
+                    <input type="password" id="password_confirm" name="password_confirm" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Want to offer services? <a href="/register/freelancer/">Become a freelancer</a></p>
+                <p>Already have an account? <a href="/login/">Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value;
+    const username = document.getElementById('username').value;
+    const full_name = document.getElementById('full_name').value;
+    const password = document.getElementById('password').value;
+    const password_confirm = document.getElementById('password_confirm').value;
+
+    if (password !== password_confirm) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/auth/register/client/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, username, full_name, password, password_confirm })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            AuthManager.setTokens(data.tokens.access, data.tokens.refresh);
+            showToast('Account created!', 'success');
+            setTimeout(() => window.location.href = '/dashboard/client/', 1000);
+        } else {
+            showToast(JSON.stringify(data), 'error');
+        }
+    } catch (error) {
+        showToast('An error occurred', 'error');
+    }
+});
+</script>
+{% endblock %}

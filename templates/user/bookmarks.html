@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Bookmarks - LocalFreelance AI{% endblock %}
+
+{% block content %}
+<div class="bookmarks-page">
+    <div class="container">
+        <h1>Your Bookmarks</h1>
+        <div id="bookmarks-list" class="freelancer-cards-grid">
+            <div class="loading">Loading bookmarks...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function renderFreelancerCard(f) {
+    return `
+        <a href="/freelancer/${f.username}/" class="freelancer-card">
+            <div class="freelancer-card-image">
+                <img src="${f.profile_photo || '/static/images/default-avatar.svg'}" alt="${f.display_name}">
+                <span class="badge badge-${f.availability}">${f.availability}</span>
+            </div>
+            <div class="freelancer-card-body">
+                <h4>${f.display_name}</h4>
+                <p class="tagline">${f.tagline || 'No tagline'}</p>
+                <div class="freelancer-card-meta">
+                    <span class="location">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        ${f.city || ''}${f.state ? ', ' + f.state : ''}
+                    </span>
+                </div>
+                <div class="freelancer-card-footer">
+                    <span class="rating">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        ${f.avg_rating?.toFixed(1) || '0.0'}
+                    </span>
+                    <span class="price">${f.price_min ? '$' + f.price_min + (f.price_max ? ' - $' + f.price_max : '') : 'Contact for price'}</span>
+                </div>
+            </div>
+        </a>
+    `;
+}
+
+async function loadBookmarks() {
+    try {
+        const res = await fetch('/api/search/bookmarks/', {
+            headers: { 'Authorization': `Bearer ${AuthManager.getAccessToken()}` }
+        });
+
+        if (!res.ok) {
+            document.getElementById('bookmarks-list').innerHTML = '<p class="text-muted">Please login to view your bookmarks</p>';
+            return;
+        }
+
+        const data = await res.json();
+        const bookmarks = data.results || [];
+
+        if (bookmarks.length === 0) {
+            document.getElementById('bookmarks-list').innerHTML = '<p class="text-muted">No bookmarks yet. Save freelancers to see them here!</p>';
+            return;
+        }
+
+        document.getElementById('bookmarks-list').innerHTML = bookmarks.map(renderFreelancerCard).join('');
+
+    } catch (error) {
+        console.error('Error loading bookmarks:', error);
+        document.getElementById('bookmarks-list').innerHTML = '<p class="text-muted">Error loading bookmarks</p>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadBookmarks);
+</script>
+{% endblock %}

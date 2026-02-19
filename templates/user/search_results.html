@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Freelancers - LocalFreelance AI{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <div class="container">
+        <div class="search-header">
+            <h1>Find Local Freelancers</h1>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Try: 'wedding photographer near downtown under $300'" class="search-input">
+                <button id="search-btn" class="btn btn-primary">Search</button>
+            </div>
+            <div class="search-filters">
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                </select>
+                <select id="availability-filter">
+                    <option value="">Any Availability</option>
+                    <option value="available">Available</option>
+                    <option value="busy">Busy</option>
+                </select>
+            </div>
+        </div>
+
+        <p id="search-ai-message" class="search-message" style="display: none;" aria-live="polite"></p>
+        <div id="search-results" class="results-grid">
+            <div class="loading">Loading freelancers...</div>
+        </div>
+
+        <div id="pagination" class="pagination"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% load static %}{% static 'js/utils.js' %}"></script>
+<script src="{% load static %}{% static 'js/search.js' %}"></script>
+<script>
+async function loadFreelancers() {
+    try {
+        const res = await fetch('/api/search/freelancers/');
+        const data = await res.json();
+        renderResults(data.results);
+    } catch (error) {
+        console.error('Error loading freelancers:', error);
+        document.getElementById('search-results').innerHTML = '<p>Error loading results</p>';
+    }
+}
+
+function renderResults(freelancers) {
+    if (!freelancers || freelancers.length === 0) {
+        document.getElementById('search-results').innerHTML = '<p>No freelancers found</p>';
+        return;
+    }
+
+    document.getElementById('search-results').innerHTML = freelancers.map(f => `
+        <div class="freelancer-card" onclick="window.location='/freelancer/${f.username}/'">
+            <img src="${f.profile_photo || '/static/images/default-avatar.png'}" alt="${f.display_name}" class="avatar">
+            <div class="card-body">
+                <h3>${f.display_name}</h3>
+                <p class="tagline">${f.tagline || ''}</p>
+                <p class="location">${f.city || ''}, ${f.state || ''}</p>
+                <div class="card-footer">
+                    <span class="rating">&#9733; ${f.avg_rating?.toFixed(1) || '0.0'}</span>
+                    <span class="badge badge-${f.availability}">${f.availability}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', loadFreelancers);
+</script>
+{% endblock %}

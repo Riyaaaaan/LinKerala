@@ -1,0 +1,2163 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - LocalFreelance AI{% endblock %}
+{% block extra_css %}
+<style>
+  .dashboard-grid-full {
+    grid-template-columns: 1fr;
+  }
+  .edit-profile-form {
+    max-width: 800px;
+  }
+  .form-section {
+    background: var(--card-bg, #fff);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .form-section h3 {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color, #eee);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-row.single {
+    grid-template-columns: 1fr;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--text-primary, #333);
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    font-size: 14px;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  .form-group small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-secondary, #666);
+    font-size: 12px;
+  }
+  .availability-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .availability-available {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .availability-busy {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .availability-offline {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  .language-entry,
+  .education-entry,
+  .work-entry,
+  .cert-entry {
+    background: var(--bg-secondary, #f9fafb);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .language-entry .remove-btn,
+  .education-entry .remove-btn,
+  .work-entry .remove-btn,
+  .cert-entry .remove-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--primary-color, #4f46e5);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .add-btn:hover {
+    background: var(--primary-hover, #4338ca);
+  }
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+  .btn-save {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-save:hover {
+    background: var(--primary-hover, #4338ca);
+  }
+  .btn-cancel {
+    background: transparent;
+    color: var(--text-secondary, #666);
+    padding: 12px 24px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .alert-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  .alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+  .profile-completeness {
+    margin-bottom: 20px;
+  }
+  .completeness-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .completeness-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .completeness-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+  }
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: var(--bg-secondary, #f3f4f6);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-primary, #333);
+    text-decoration: none;
+  }
+  .social-link:hover {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+  }
+  .profile-preview {
+    padding: 16px;
+    background: var(--bg-secondary, #f9fafb);
+    border-radius: 8px;
+  }
+  .profile-header-section {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .profile-header-section .avatar-xl {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .profile-header-info h2 {
+    margin: 0 0 4px 0;
+    font-size: 20px;
+  }
+  .profile-header-info .tagline {
+    margin: 0 0 8px 0;
+    color: var(--text-secondary, #666);
+    font-size: 14px;
+  }
+  .profile-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .profile-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+  }
+  .profile-status {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color, #eee);
+  }
+  .price-range {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary, #333);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  .badge-available {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .badge-busy {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .badge-offline {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  .tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color, #eee);
+    padding-bottom: 12px;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary, #666);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+  }
+  .tab-btn:hover:not(.active) {
+    background: var(--bg-secondary, #f3f4f6);
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .hidden {
+    display: none;
+  }
+  .photo-upload-area {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .photo-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border-color, #e5e7eb);
+  }
+  .photo-preview.cover {
+    width: 200px;
+    height: 100px;
+    border-radius: 8px;
+  }
+  .social-links-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .social-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .social-input svg {
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary, #666);
+  }
+  .badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .badge-accepted {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .badge-declined {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-accept {
+    background: #22c55e;
+    color: white;
+  }
+  .btn-accept:hover {
+    background: #16a34a;
+  }
+  .btn-decline {
+    background: #ef4444;
+    color: white;
+  }
+  .btn-decline:hover {
+    background: #dc2626;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-header h3 {
+    margin: 0;
+  }
+  .skill-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    background: var(--bg-secondary, #f3f4f6);
+    color: var(--text-secondary, #666);
+    border-radius: 4px;
+  }
+  .ai-suggestions-message {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #0369a1;
+    line-height: 1.5;
+  }
+  .ai-matching-badge {
+    font-size: 11px;
+    color: var(--text-secondary, #666);
+    margin-top: 4px;
+  }
+  /* Available Works Grid - Profile Card Style */
+  .available-works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .work-card-clickable {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .work-card-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color, #4f46e5);
+  }
+  .work-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .work-card-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-primary, #333);
+    flex: 1;
+  }
+  .work-card-pay {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color, #4f46e5);
+  }
+  .work-card-category {
+    font-size: 12px;
+    color: var(--text-secondary, #666);
+    margin-bottom: 8px;
+  }
+  .work-card-description {
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .work-card-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted, #999);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .work-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .work-card-client {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color, #eee);
+  }
+  .work-card-client-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-secondary, #f3f4f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+  }
+  .work-card-client-name {
+    font-size: 13px;
+    color: var(--text-primary, #333);
+  }
+  .work-card-match-reason {
+    font-size: 12px;
+    color: var(--primary-color, #4f46e5);
+    margin: 0 0 8px 0;
+    padding: 6px 10px;
+    background: rgba(79, 70, 229, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color, #4f46e5);
+  }
+  /* Modal Styles */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal-content {
+    background: var(--card-bg, #fff);
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalSlideIn 0.3s ease;
+  }
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color, #eee);
+  }
+  .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary, #666);
+    padding: 4px;
+    line-height: 1;
+  }
+  .modal-close:hover {
+    color: var(--text-primary, #333);
+  }
+  .modal-body {
+    padding: 24px;
+  }
+  .modal-section {
+    margin-bottom: 20px;
+  }
+  .modal-section:last-child {
+    margin-bottom: 0;
+  }
+  .modal-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .modal-section-value {
+    font-size: 14px;
+    color: var(--text-primary, #333);
+  }
+  .modal-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color, #eee);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toggle-btn svg {
+    transition: transform 0.2s;
+  }
+  .toggle-btn.active svg {
+    transform: rotate(180deg);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="dashboard">
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>Freelancer Dashboard</h1>
+      <div class="dashboard-actions">
+        <a href="/inbox/" class="btn btn-primary">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+            ></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          Inbox
+        </a>
+        <button type="button" class="btn btn-outline" id="toggle-edit-profile">
+          Edit Profile
+        </button>
+        <a
+          href="#"
+          id="public-profile-link"
+          class="btn btn-outline"
+          target="_blank"
+          >View Public Profile</a
+        >
+      </div>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <!-- Project Requests and Analytics - Side by Side -->
+    <div
+      class="dashboard-grid"
+      style="
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-bottom: 24px;
+      "
+    >
+      <!-- Project Requests Card -->
+      <div
+        class="dashboard-card"
+        style="border-left: 4px solid var(--primary-color, #4f46e5)"
+      >
+        <div class="card-header">
+          <button
+            type="button"
+            class="btn btn-primary toggle-btn"
+            id="toggle-requests-btn"
+            style="width: 100%; justify-content: center"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Project Requests
+            <span
+              class="badge badge-pending"
+              id="pending-requests-badge"
+              style="margin-left: 8px"
+              >0 pending</span
+            >
+          </button>
+        </div>
+        <div
+          id="project-requests-container"
+          style="display: none; max-height: 400px; overflow-y: auto"
+        >
+          <div id="project-requests-info">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Card -->
+      <div class="dashboard-card">
+        <h3>Analytics</h3>
+        <div id="analytics-info">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Section - Hidden by Default -->
+    <div
+      id="edit-profile-section"
+      class="dashboard-card"
+      style="display: none; margin-bottom: 24px"
+    >
+      <div class="card-header">
+        <h2>Edit Profile</h2>
+        <button type="button" class="btn btn-outline" id="close-edit-profile">
+          Close
+        </button>
+      </div>
+
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="profile">Profile</button>
+        <button class="tab-btn" data-tab="professional">Professional</button>
+        <button class="tab-btn" data-tab="social">Social & Links</button>
+      </div>
+
+      <form id="edit-profile-form" class="edit-profile-form">
+        <!-- Basic Profile Tab -->
+        <div class="tab-content active" id="tab-profile">
+          <div class="form-section">
+            <h3>Basic Information</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="display_name">Display Name *</label>
+                <input
+                  type="text"
+                  id="display_name"
+                  name="display_name"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="tagline">Tagline</label>
+                <input
+                  type="text"
+                  id="tagline"
+                  name="tagline"
+                  placeholder="e.g., Professional Web Developer with 5+ years experience"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="bio">Bio</label>
+              <textarea
+                id="bio"
+                name="bio"
+                placeholder="Tell clients about yourself, your expertise, and what makes you unique..."
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Profile Photos</label>
+              <div class="photo-upload-area">
+                <div>
+                  <img
+                    id="profile-photo-preview"
+                    class="photo-preview"
+                    src="/static/images/default-avatar.svg"
+                    alt="Profile Photo"
+                  />
+                  <input
+                    type="hidden"
+                    id="profile_photo"
+                    name="profile_photo"
+                  />
+                  <small>Profile Photo</small>
+                </div>
+                <div>
+                  <img
+                    id="cover-photo-preview"
+                    class="photo-preview cover"
+                    src="/static/images/default-cover.svg"
+                    alt="Cover Photo"
+                  />
+                  <input type="hidden" id="cover_photo" name="cover_photo" />
+                  <small>Cover Photo (URL)</small>
+                </div>
+              </div>
+              <input
+                type="url"
+                id="profile_photo_url"
+                placeholder="Enter profile photo URL"
+                style="margin-top: 8px"
+              />
+              <input
+                type="url"
+                id="cover_photo_url"
+                placeholder="Enter cover photo URL"
+                style="margin-top: 8px"
+              />
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Location</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="city">City</label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  placeholder="e.g., San Francisco"
+                />
+              </div>
+              <div class="form-group">
+                <label for="state">State/Province</label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  placeholder="e.g., California"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="country">Country</label>
+                <input
+                  type="text"
+                  id="country"
+                  name="country"
+                  placeholder="e.g., United States"
+                />
+              </div>
+              <div class="form-group">
+                <label for="address">Full Address</label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  placeholder="Street address"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Pricing</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="hourly_rate">Hourly Rate ($)</label>
+                <input
+                  type="number"
+                  id="hourly_rate"
+                  name="hourly_rate"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 75.00"
+                />
+                <small>Your hourly rate for projects</small>
+              </div>
+              <div class="form-group">
+                <label for="availability">Availability Status</label>
+                <select id="availability" name="availability">
+                  <option value="available">Available</option>
+                  <option value="busy">Busy</option>
+                  <option value="offline">Offline</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="price_min">Minimum Project Price ($)</label>
+                <input
+                  type="number"
+                  id="price_min"
+                  name="price_min"
+                  min="0"
+                  placeholder="e.g., 100"
+                />
+              </div>
+              <div class="form-group">
+                <label for="price_max">Maximum Project Price ($)</label>
+                <input
+                  type="number"
+                  id="price_max"
+                  name="price_max"
+                  min="0"
+                  placeholder="e.g., 5000"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="response_time_hours">Response Time (hours)</label>
+              <input
+                type="number"
+                id="response_time_hours"
+                name="response_time_hours"
+                min="1"
+                placeholder="e.g., 4"
+              />
+              <small>Typical response time to client inquiries</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Tab -->
+        <div class="tab-content" id="tab-professional">
+          <div class="form-section">
+            <h3>Experience</h3>
+
+            <div class="form-group">
+              <label for="years_experience">Years of Experience</label>
+              <input
+                type="number"
+                id="years_experience"
+                name="years_experience"
+                min="0"
+                placeholder="e.g., 5"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Languages</label>
+              <div id="languages-container">
+                <div class="language-entry">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <input
+                        type="text"
+                        class="lang-name"
+                        placeholder="Language (e.g., English)"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <select class="lang-proficiency">
+                        <option value="native">Native</option>
+                        <option value="fluent">Fluent</option>
+                        <option value="conversational">Conversational</option>
+                        <option value="basic">Basic</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="add-btn" id="add-language-btn">
+                + Add Language
+              </button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Education</h3>
+            <div id="education-container"></div>
+            <button type="button" class="add-btn" id="add-education-btn">
+              + Add Education
+            </button>
+          </div>
+
+          <div class="form-section">
+            <h3>Work Experience</h3>
+            <div id="work-container"></div>
+            <button type="button" class="add-btn" id="add-work-btn">
+              + Add Work Experience
+            </button>
+          </div>
+
+          <div class="form-section">
+            <h3>Certifications</h3>
+            <div id="certifications-container"></div>
+            <button type="button" class="add-btn" id="add-cert-btn">
+              + Add Certification
+            </button>
+          </div>
+        </div>
+
+        <!-- Social & Links Tab -->
+        <div class="tab-content" id="tab-social">
+          <div class="form-section">
+            <h3>Social Links</h3>
+
+            <div class="social-links-grid">
+              <div class="form-group social-input">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                  />
+                </svg>
+                <input
+                  type="url"
+                  id="linkedin_url"
+                  name="linkedin_url"
+                  placeholder="LinkedIn URL"
+                />
+              </div>
+              <div class="form-group social-input">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                  />
+                </svg>
+                <input
+                  type="url"
+                  id="github_url"
+                  name="github_url"
+                  placeholder="GitHub URL"
+                />
+              </div>
+              <div class="form-group social-input">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"
+                  />
+                </svg>
+                <input
+                  type="url"
+                  id="twitter_url"
+                  name="twitter_url"
+                  placeholder="Twitter/X URL"
+                />
+              </div>
+              <div class="form-group social-input">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                  />
+                </svg>
+                <input
+                  type="url"
+                  id="instagram_url"
+                  name="instagram_url"
+                  placeholder="Instagram URL"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="website_url">Personal Website</label>
+              <input
+                type="url"
+                id="website_url"
+                name="website_url"
+                placeholder="https://yourwebsite.com"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancel-btn">
+            Cancel
+          </button>
+          <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Available Work and AI Suggestions -->
+    <div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 24px">
+      <div class="dashboard-card">
+        <h3>Available Work</h3>
+        <div id="available-work-list" class="available-works-grid">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>Personalized work recommendations</h3>
+        <p id="ai-suggestions-message" class="ai-suggestions-message" style="display: none;"></p>
+        <div id="ai-suggestions" class="available-works-grid">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Work Detail Modal -->
+<div id="work-detail-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-work-title">Work Title</h2>
+      <button type="button" class="modal-close" id="close-modal">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-label">Category</div>
+        <div class="modal-section-value" id="modal-work-category">Category</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Description</div>
+        <div class="modal-section-value" id="modal-work-description">
+          Description
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Pay Rate</div>
+        <div class="modal-section-value" id="modal-work-pay">$0/hr</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Duration</div>
+        <div class="modal-section-value" id="modal-work-duration">0 days</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Location</div>
+        <div class="modal-section-value" id="modal-work-location">
+          Not specified
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Required Skills</div>
+        <div class="modal-skills" id="modal-work-skills"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Posted by</div>
+        <div class="modal-section-value" id="modal-work-client">Client</div>
+      </div>
+      <div
+        class="modal-section"
+        id="modal-contact-section"
+        style="display: none"
+      >
+        <div class="modal-section-label">Contact Info</div>
+        <div class="modal-section-value" id="modal-work-contact"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Posted Date</div>
+        <div class="modal-section-value" id="modal-work-date">Date</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" id="modal-close-btn">
+        Close
+      </button>
+      <button type="button" class="btn btn-success" id="modal-quote-btn">
+        Submit Quote
+      </button>
+      <a href="#" id="modal-contact-btn" class="btn btn-primary"
+        >Contact Client</a
+      >
+    </div>
+  </div>
+</div>
+
+<!-- Quote Submission Modal -->
+<div id="quote-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Submit Quote</h2>
+      <button type="button" class="modal-close" id="close-quote-modal">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="quote-form">
+        <input type="hidden" id="quote-work-id" name="work" />
+        <div class="form-group">
+          <label for="quote-work-title">Work</label>
+          <input
+            type="text"
+            id="quote-work-title"
+            class="form-control"
+            readonly
+          />
+        </div>
+        <div class="form-group">
+          <label for="proposed-rate">Your Proposed Rate ($/hr)</label>
+          <input
+            type="number"
+            id="proposed-rate"
+            name="proposed_rate"
+            class="form-control"
+            step="0.01"
+            min="0"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="estimated-duration">Estimated Duration (hours)</label>
+          <input
+            type="number"
+            id="estimated-duration"
+            name="estimated_duration"
+            class="form-control"
+            min="1"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="cover-letter">Cover Letter / Proposal</label>
+          <textarea
+            id="cover-letter"
+            name="cover_letter"
+            class="form-control"
+            rows="5"
+            placeholder="Describe why you're the best fit for this job..."
+            required
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="send-email" name="send_email" checked />
+            Send quote to client via email
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" id="cancel-quote-btn">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-success" id="submit-quote-btn">
+        Submit Quote
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  const LANGUAGE_PROFICIENCY_OPTIONS = [
+    { value: "native", label: "Native" },
+    { value: "fluent", label: "Fluent" },
+    { value: "conversational", label: "Conversational" },
+    { value: "basic", label: "Basic" },
+  ];
+
+  // Tab Navigation
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll(".tab-btn")
+        .forEach((b) => b.classList.remove("active"));
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((c) => c.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // Language Entry Template
+  function createLanguageEntry(data = {}) {
+    const div = document.createElement("div");
+    div.className = "language-entry";
+    div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">&times;</button>
+        <div class="form-row">
+            <div class="form-group">
+                <input type="text" class="lang-name" placeholder="Language (e.g., English)" value="${data.language || ""}">
+            </div>
+            <div class="form-group">
+                <select class="lang-proficiency">
+                    ${LANGUAGE_PROFICIENCY_OPTIONS.map(
+                      (opt) =>
+                        `<option value="${opt.value}" ${data.proficiency === opt.value ? "selected" : ""}>${opt.label}</option>`,
+                    ).join("")}
+                </select>
+            </div>
+        </div>
+    `;
+    return div;
+  }
+
+  // Education Entry Template
+  function createEducationEntry(data = {}) {
+    const div = document.createElement("div");
+    div.className = "education-entry";
+    div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">&times;</button>
+        <div class="form-group">
+            <input type="text" class="edu-school" placeholder="School/University" value="${data.school || ""}">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <input type="text" class="edu-degree" placeholder="Degree" value="${data.degree || ""}">
+            </div>
+            <div class="form-group">
+                <input type="text" class="edu-field" placeholder="Field of Study" value="${data.field || ""}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <input type="number" class="edu-start" placeholder="Start Year" value="${data.start_year || ""}">
+            </div>
+            <div class="form-group">
+                <input type="number" class="edu-end" placeholder="End Year" value="${data.end_year || ""}">
+            </div>
+        </div>
+    `;
+    return div;
+  }
+
+  // Work Experience Entry Template
+  function createWorkEntry(data = {}) {
+    const div = document.createElement("div");
+    div.className = "work-entry";
+    div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">&times;</button>
+        <div class="form-group">
+            <input type="text" class="work-company" placeholder="Company Name" value="${data.company || ""}">
+        </div>
+        <div class="form-group">
+            <input type="text" class="work-title" placeholder="Job Title" value="${data.title || ""}">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <input type="text" class="work-start" placeholder="Start Date" value="${data.start_date || ""}">
+            </div>
+            <div class="form-group">
+                <input type="text" class="work-end" placeholder="End Date (or 'Present')" value="${data.end_date || ""}">
+            </div>
+        </div>
+        <div class="form-group">
+            <textarea class="work-description" placeholder="Describe your responsibilities and achievements...">${data.description || ""}</textarea>
+        </div>
+    `;
+    return div;
+  }
+
+  // Certification Entry Template
+  function createCertEntry(data = {}) {
+    const div = document.createElement("div");
+    div.className = "cert-entry";
+    div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">&times;</button>
+        <div class="form-group">
+            <input type="text" class="cert-name" placeholder="Certification Name" value="${data.name || ""}">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <input type="text" class="cert-issuer" placeholder="Issuing Organization" value="${data.issuer || ""}">
+            </div>
+            <div class="form-group">
+                <input type="text" class="cert-date" placeholder="Date Obtained" value="${data.date || ""}">
+            </div>
+        </div>
+        <div class="form-group">
+            <input type="url" class="cert-url" placeholder="Credential URL" value="${data.url || ""}">
+        </div>
+    `;
+    return div;
+  }
+
+  // Add Button Event Listeners
+  document.getElementById("add-language-btn").addEventListener("click", () => {
+    document
+      .getElementById("languages-container")
+      .appendChild(createLanguageEntry());
+  });
+
+  document.getElementById("add-education-btn").addEventListener("click", () => {
+    document
+      .getElementById("education-container")
+      .appendChild(createEducationEntry());
+  });
+
+  document.getElementById("add-work-btn").addEventListener("click", () => {
+    document.getElementById("work-container").appendChild(createWorkEntry());
+  });
+
+  document.getElementById("add-cert-btn").addEventListener("click", () => {
+    document
+      .getElementById("certifications-container")
+      .appendChild(createCertEntry());
+  });
+
+  // Helper to collect JSON fields
+  function collectLanguages() {
+    const languages = [];
+    document.querySelectorAll(".language-entry").forEach((entry) => {
+      const name = entry.querySelector(".lang-name").value.trim();
+      const proficiency = entry.querySelector(".lang-proficiency").value;
+      if (name) languages.push({ language: name, proficiency });
+    });
+    return languages;
+  }
+
+  function collectEducation() {
+    const education = [];
+    document.querySelectorAll(".education-entry").forEach((entry) => {
+      const school = entry.querySelector(".edu-school").value.trim();
+      const degree = entry.querySelector(".edu-degree").value.trim();
+      const field = entry.querySelector(".edu-field").value.trim();
+      const start_year = entry.querySelector(".edu-start").value.trim();
+      const end_year = entry.querySelector(".edu-end").value.trim();
+      if (school || degree) {
+        education.push({ school, degree, field, start_year, end_year });
+      }
+    });
+    return education;
+  }
+
+  function collectWorkExperience() {
+    const work = [];
+    document.querySelectorAll(".work-entry").forEach((entry) => {
+      const company = entry.querySelector(".work-company").value.trim();
+      const title = entry.querySelector(".work-title").value.trim();
+      const start_date = entry.querySelector(".work-start").value.trim();
+      const end_date = entry.querySelector(".work-end").value.trim();
+      const description = entry.querySelector(".work-description").value.trim();
+      if (company || title) {
+        work.push({ company, title, start_date, end_date, description });
+      }
+    });
+    return work;
+  }
+
+  function collectCertifications() {
+    const certs = [];
+    document.querySelectorAll(".cert-entry").forEach((entry) => {
+      const name = entry.querySelector(".cert-name").value.trim();
+      const issuer = entry.querySelector(".cert-issuer").value.trim();
+      const date = entry.querySelector(".cert-date").value.trim();
+      const url = entry.querySelector(".cert-url").value.trim();
+      if (name) {
+        certs.push({ name, issuer, date, url });
+      }
+    });
+    return certs;
+  }
+
+  // Photo URL handlers
+  document
+    .getElementById("profile_photo_url")
+    .addEventListener("change", function () {
+      if (this.value) {
+        document.getElementById("profile_photo").value = this.value;
+        document.getElementById("profile-photo-preview").src = this.value;
+      }
+    });
+
+  document
+    .getElementById("cover_photo_url")
+    .addEventListener("change", function () {
+      if (this.value) {
+        document.getElementById("cover_photo").value = this.value;
+        document.getElementById("cover-photo-preview").src = this.value;
+      }
+    });
+
+  // Form Submission
+  document
+    .getElementById("edit-profile-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        display_name: document.getElementById("display_name").value,
+        tagline: document.getElementById("tagline").value,
+        bio: document.getElementById("bio").value,
+        profile_photo:
+          document.getElementById("profile_photo").value ||
+          document.getElementById("profile_photo_url").value,
+        cover_photo:
+          document.getElementById("cover_photo").value ||
+          document.getElementById("cover_photo_url").value,
+        city: document.getElementById("city").value,
+        state: document.getElementById("state").value,
+        country: document.getElementById("country").value,
+        address: document.getElementById("address").value,
+        hourly_rate: document.getElementById("hourly_rate").value || null,
+        price_min: document.getElementById("price_min").value || null,
+        price_max: document.getElementById("price_max").value || null,
+        availability: document.getElementById("availability").value,
+        response_time_hours:
+          document.getElementById("response_time_hours").value || null,
+        years_experience:
+          document.getElementById("years_experience").value || null,
+        languages: collectLanguages(),
+        linkedin_url: document.getElementById("linkedin_url").value,
+        website_url: document.getElementById("website_url").value,
+        github_url: document.getElementById("github_url").value,
+        twitter_url: document.getElementById("twitter_url").value,
+        instagram_url: document.getElementById("instagram_url").value,
+        education: collectEducation(),
+        work_experience: collectWorkExperience(),
+        certifications: collectCertifications(),
+      };
+
+      try {
+        const response = await fetch("/api/auth/freelancer/profile/", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${AuthManager.getAccessToken()}`,
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          showAlert("Profile updated successfully!", "success");
+          // Reload profile to reflect changes
+          loadProfile();
+        } else {
+          const error = await response.json();
+          showAlert("Error: " + JSON.stringify(error), "error");
+        }
+      } catch (err) {
+        showAlert("Error saving profile: " + err.message, "error");
+      }
+    });
+
+  function showAlert(message, type) {
+    const container = document.getElementById("alert-container");
+    container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    setTimeout(() => (container.innerHTML = ""), 5000);
+  }
+
+  // Load Profile Data
+  async function loadProfile() {
+    try {
+      const response = await fetch("/api/auth/freelancer/dashboard/", {
+        headers: { Authorization: `Bearer ${AuthManager.getAccessToken()}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to load profile");
+
+      const profile = await response.json();
+
+      // Set public profile link
+      const publicProfileLink = document.getElementById("public-profile-link");
+      if (publicProfileLink && profile.username) {
+        publicProfileLink.href = `/freelancer/${profile.username}/`;
+      }
+
+      // Basic Info
+      document.getElementById("display_name").value =
+        profile.display_name || "";
+      document.getElementById("tagline").value = profile.tagline || "";
+      document.getElementById("bio").value = profile.bio || "";
+
+      // Photos
+      if (profile.profile_photo) {
+        document.getElementById("profile_photo").value = profile.profile_photo;
+        document.getElementById("profile_photo_url").value =
+          profile.profile_photo;
+        document.getElementById("profile-photo-preview").src =
+          profile.profile_photo;
+      }
+      if (profile.cover_photo) {
+        document.getElementById("cover_photo").value = profile.cover_photo;
+        document.getElementById("cover_photo_url").value = profile.cover_photo;
+        document.getElementById("cover-photo-preview").src =
+          profile.cover_photo;
+      }
+
+      // Location
+      document.getElementById("city").value = profile.city || "";
+      document.getElementById("state").value = profile.state || "";
+      document.getElementById("country").value = profile.country || "";
+      document.getElementById("address").value = profile.address || "";
+
+      // Pricing
+      document.getElementById("hourly_rate").value = profile.hourly_rate || "";
+      document.getElementById("price_min").value = profile.price_min || "";
+      document.getElementById("price_max").value = profile.price_max || "";
+      document.getElementById("availability").value =
+        profile.availability || "offline";
+      document.getElementById("response_time_hours").value =
+        profile.response_time_hours || "";
+
+      // Experience
+      document.getElementById("years_experience").value =
+        profile.years_experience || "";
+
+      // Languages
+      const langContainer = document.getElementById("languages-container");
+      langContainer.innerHTML = "";
+      if (profile.languages && profile.languages.length > 0) {
+        profile.languages.forEach((lang) =>
+          langContainer.appendChild(createLanguageEntry(lang)),
+        );
+      } else {
+        langContainer.appendChild(createLanguageEntry());
+      }
+
+      // Social Links
+      document.getElementById("linkedin_url").value =
+        profile.linkedin_url || "";
+      document.getElementById("website_url").value = profile.website_url || "";
+      document.getElementById("github_url").value = profile.github_url || "";
+      document.getElementById("twitter_url").value = profile.twitter_url || "";
+      document.getElementById("instagram_url").value =
+        profile.instagram_url || "";
+
+      // Education
+      const eduContainer = document.getElementById("education-container");
+      eduContainer.innerHTML = "";
+      if (profile.education && profile.education.length > 0) {
+        profile.education.forEach((edu) =>
+          eduContainer.appendChild(createEducationEntry(edu)),
+        );
+      }
+
+      // Work Experience
+      const workContainer = document.getElementById("work-container");
+      workContainer.innerHTML = "";
+      if (profile.work_experience && profile.work_experience.length > 0) {
+        profile.work_experience.forEach((work) =>
+          workContainer.appendChild(createWorkEntry(work)),
+        );
+      }
+
+      // Certifications
+      const certContainer = document.getElementById("certifications-container");
+      certContainer.innerHTML = "";
+      if (profile.certifications && profile.certifications.length > 0) {
+        profile.certifications.forEach((cert) =>
+          certContainer.appendChild(createCertEntry(cert)),
+        );
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+      showAlert("Error loading profile data", "error");
+    }
+  }
+
+  // Load Analytics
+  async function loadAnalytics() {
+    try {
+      const response = await fetch("/api/analytics/dashboard/", {
+        headers: { Authorization: `Bearer ${AuthManager.getAccessToken()}` },
+      });
+      const analytics = await response.json();
+
+      // Update quick stats row
+      document.getElementById("stat-views").textContent =
+        analytics.profile_views?.total || 0;
+      document.getElementById("stat-score").textContent =
+        analytics.activity_score || 0;
+
+      document.getElementById("analytics-info").innerHTML = `
+            <div class="stats-grid stats-grid-4">
+                <div class="stat">
+                    <span class="stat-value">${analytics.profile_views?.total || 0}</span>
+                    <span class="stat-label">Profile Views</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">${analytics.profile_views?.last_30_days || 0}</span>
+                    <span class="stat-label">Views (30d)</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">${analytics.inquiries?.total || 0}</span>
+                    <span class="stat-label">Inquiries</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">${analytics.activity_score || 0}</span>
+                    <span class="stat-label">Activity Score</span>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+      document.getElementById("analytics-info").innerHTML =
+        '<p class="text-muted">Unable to load analytics</p>';
+    }
+  }
+
+  // Toggle Project Requests
+  const toggleRequestsBtn = document.getElementById("toggle-requests-btn");
+  const requestsContainer = document.getElementById(
+    "project-requests-container",
+  );
+
+  if (toggleRequestsBtn && requestsContainer) {
+    toggleRequestsBtn.addEventListener("click", () => {
+      const isHidden = requestsContainer.style.display === "none";
+      requestsContainer.style.display = isHidden ? "block" : "none";
+      toggleRequestsBtn.classList.toggle("active", isHidden);
+    });
+  }
+
+  // Load Project Requests
+  async function loadProjectRequests() {
+    try {
+      const response = await fetch("/api/messages/inbox/", {
+        headers: { Authorization: `Bearer ${AuthManager.getAccessToken()}` },
+      });
+      const requests = await response.json();
+
+      // Count by status
+      const pending = requests.filter((r) => r.status === "pending").length;
+      const accepted = requests.filter((r) => r.status === "accepted").length;
+      const declined = requests.filter((r) => r.status === "declined").length;
+
+      // Update quick stats
+      document.getElementById("stat-requests").textContent = requests.length;
+
+      // Update badge
+      document.getElementById("pending-requests-badge").textContent =
+        `${pending} pending`;
+      document.getElementById("pending-requests-badge").className =
+        pending > 0 ? "badge badge-pending" : "badge";
+
+      if (requests.length > 0) {
+        // Show recent requests (pending first)
+        const sortedRequests = [...requests].sort((a, b) => {
+          if (a.status === "pending" && b.status !== "pending") return -1;
+          if (a.status !== "pending" && b.status === "pending") return 1;
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+
+        document.getElementById("project-requests-info").innerHTML =
+          sortedRequests
+            .slice(0, 4)
+            .map(
+              (req) => `
+                <div class="request-item" style="padding: 12px; border-bottom: 1px solid var(--border-color, #eee);">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <strong>${req.sender?.username || "Unknown Client"}</strong>
+                        <span class="badge badge-${req.status}" style="text-transform: capitalize;">${req.status}</span>
+                    </div>
+                    <p style="margin: 0 0 8px 0; font-size: 13px; color: var(--text-secondary, #666);">
+                        ${req.message.substring(0, 80)}${req.message.length > 80 ? "..." : ""}
+                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="message-time" style="font-size: 12px;">${new Date(req.created_at).toLocaleDateString()}</span>
+                        ${
+                          req.status === "pending"
+                            ? `
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm btn-accept" onclick="handleRequest(${req.id}, 'accepted')">Accept</button>
+                                <button class="btn btn-sm btn-decline" onclick="handleRequest(${req.id}, 'declined')">Decline</button>
+                            </div>
+                        `
+                            : ""
+                        }
+                    </div>
+                </div>
+            `,
+            )
+            .join("");
+      } else {
+        document.getElementById("project-requests-info").innerHTML = `
+                <p class="text-muted">No project requests yet</p>
+                <p style="font-size: 13px; color: var(--text-secondary, #666);">
+                    Share your profile to get more clients!
+                </p>
+            `;
+      }
+    } catch (error) {
+      console.error("Error loading project requests:", error);
+      document.getElementById("project-requests-info").innerHTML =
+        '<p class="text-muted">Unable to load project requests</p>';
+    }
+  }
+
+  // Handle Accept/Decline Request
+  async function handleRequest(requestId, status) {
+    try {
+      const response = await fetch(`/api/messages/${requestId}/status/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${AuthManager.getAccessToken()}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (response.ok) {
+        showAlert(`Request ${status}!`, "success");
+        loadProjectRequests(); // Reload the list
+      } else {
+        const error = await response.json();
+        showAlert("Error: " + JSON.stringify(error), "error");
+      }
+    } catch (err) {
+      showAlert("Error: " + err.message, "error");
+    }
+  }
+
+  // Load Available Work - Render as Profile Cards
+  async function loadAvailableWork() {
+    try {
+      const response = await fetch("/api/auth/works/public/");
+      const works = await response.json();
+
+      if (works && works.length > 0) {
+        document.getElementById("available-work-list").innerHTML = works
+          .slice(0, 6)
+          .map((work) => {
+            const skillsHtml =
+              work.skills && work.skills.length > 0
+                ? work.skills
+                    .slice(0, 3)
+                    .map((s) => `<span class="skill-tag">${s}</span>`)
+                    .join("")
+                : '<span class="text-muted" style="font-size: 12px;">No skills specified</span>';
+
+            const clientInitial = work.client_username
+              ? work.client_username.charAt(0).toUpperCase()
+              : "?";
+            const clientName = work.client_username || "Anonymous Client";
+
+            return `
+              <div class="work-card-clickable" onclick="showWorkDetail(${JSON.stringify(work).replace(/"/g, "&quot;")})">
+                <div class="work-card-header">
+                  <h4>${work.title}</h4>
+                  <span class="work-card-pay">$${parseFloat(work.pay_per_hour).toFixed(2)}/hr</span>
+                </div>
+                <div class="work-card-category">${work.category || "Uncategorized"}</div>
+                <p class="work-card-description">${work.description}</p>
+                <div class="work-card-meta">
+                  <span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    ${work.duration_value} ${work.duration_unit}
+                  </span>
+                  ${
+                    work.location
+                      ? `
+                  <span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    ${work.location}
+                  </span>
+                  `
+                      : ""
+                  }
+                </div>
+                <div class="work-skills" style="margin-bottom: 12px;">
+                  ${skillsHtml}
+                </div>
+                <div class="work-card-client">
+                  <div class="work-card-client-avatar">${clientInitial}</div>
+                  <span class="work-card-client-name">${clientName}</span>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      } else {
+        document.getElementById("available-work-list").innerHTML =
+          '<p class="text-muted">No available work at the moment</p>';
+      }
+    } catch (error) {
+      console.error("Error loading available work:", error);
+      document.getElementById("available-work-list").innerHTML =
+        '<p class="text-muted">Unable to load available work</p>';
+    }
+  }
+
+  // Show Work Detail Modal
+  function showWorkDetail(work) {
+    document.getElementById("modal-work-title").textContent = work.title;
+    document.getElementById("modal-work-category").textContent =
+      work.category || "Uncategorized";
+    document.getElementById("modal-work-description").textContent =
+      work.description;
+    document.getElementById("modal-work-pay").textContent =
+      `$${parseFloat(work.pay_per_hour).toFixed(2)}/hour`;
+    document.getElementById("modal-work-duration").textContent =
+      `${work.duration_value} ${work.duration_unit}`;
+    document.getElementById("modal-work-location").textContent =
+      work.location || "Not specified";
+
+    // Skills
+    const skillsContainer = document.getElementById("modal-work-skills");
+    if (work.skills && work.skills.length > 0) {
+      skillsContainer.innerHTML = work.skills
+        .map((s) => `<span class="skill-tag">${s}</span>`)
+        .join("");
+    } else {
+      skillsContainer.innerHTML =
+        '<span class="text-muted">No skills specified</span>';
+    }
+
+    // Client
+    document.getElementById("modal-work-client").textContent =
+      work.client_username || "Anonymous Client";
+
+    // Contact info
+    const contactSection = document.getElementById("modal-contact-section");
+    if (work.show_contact_info && work.client_phone) {
+      contactSection.style.display = "block";
+      document.getElementById("modal-work-contact").innerHTML = `
+        <a href="tel:${work.client_phone}" style="color: var(--primary-color, #4f46e5);">${work.client_phone}</a>
+        ${work.client_city ? `<span style="color: var(--text-secondary, #666);"> - ${work.client_city}</span>` : ""}
+      `;
+    } else {
+      contactSection.style.display = "none";
+    }
+
+    // Posted date
+    document.getElementById("modal-work-date").textContent = new Date(
+      work.created_at,
+    ).toLocaleDateString();
+
+    // Show modal
+    currentWorkForQuote = work;
+    document.getElementById("work-detail-modal").classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  // Close Modal
+  function closeWorkModal() {
+    document.getElementById("work-detail-modal").classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  // Modal event listeners
+  document
+    .getElementById("close-modal")
+    .addEventListener("click", closeWorkModal);
+  document
+    .getElementById("modal-close-btn")
+    .addEventListener("click", closeWorkModal);
+  document
+    .getElementById("work-detail-modal")
+    .addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeWorkModal();
+    });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeWorkModal();
+  });
+
+  // Quote Modal Functionality
+  let currentWorkForQuote = null;
+
+  document
+    .getElementById("modal-quote-btn")
+    .addEventListener("click", function () {
+      if (currentWorkForQuote) {
+        document.getElementById("quote-work-id").value = currentWorkForQuote.id;
+        document.getElementById("quote-work-title").value =
+          currentWorkForQuote.title;
+        // Pre-fill with the client's offered rate
+        document.getElementById("proposed-rate").value =
+          currentWorkForQuote.pay_per_hour || "";
+        document.getElementById("estimated-duration").value = "";
+        document.getElementById("cover-letter").value = "";
+        document.getElementById("send-email").checked = true;
+        closeWorkModal();
+        document.getElementById("quote-modal").classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+    });
+
+  function closeQuoteModal() {
+    document.getElementById("quote-modal").classList.remove("active");
+    document.body.style.overflow = "";
+    currentWorkForQuote = null;
+  }
+
+  document
+    .getElementById("close-quote-modal")
+    .addEventListener("click", closeQuoteModal);
+  document
+    .getElementById("cancel-quote-btn")
+    .addEventListener("click", closeQuoteModal);
+  document.getElementById("quote-modal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeQuoteModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeQuoteModal();
+  });
+
+  document
+    .getElementById("submit-quote-btn")
+    .addEventListener("click", async function () {
+      const workId = document.getElementById("quote-work-id").value;
+      const proposedRate = document.getElementById("proposed-rate").value;
+      const estimatedDuration =
+        document.getElementById("estimated-duration").value;
+      const coverLetter = document.getElementById("cover-letter").value;
+      const sendEmail = document.getElementById("send-email").checked;
+
+      if (!proposedRate || !estimatedDuration || !coverLetter) {
+        alert("Please fill in all required fields");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submit-quote-btn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+
+      try {
+        const response = await fetch("/api/auth/quotes/create/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + AuthManager.getAccessToken(),
+          },
+          body: JSON.stringify({
+            work: workId,
+            proposed_rate: proposedRate,
+            estimated_duration: estimatedDuration,
+            cover_letter: coverLetter,
+            send_email: sendEmail,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert("Quote submitted successfully!");
+          closeQuoteModal();
+          loadAvailableWork(); // Refresh to update quote status
+        } else {
+          alert("Error: " + (data.error || "Failed to submit quote"));
+        }
+      } catch (error) {
+        console.error("Error submitting quote:", error);
+        alert("An error occurred. Please try again.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Quote";
+      }
+    });
+
+  // Load personalized work recommendations (AI matching via Google GenAI)
+  async function loadAISuggestions() {
+    try {
+      const response = await fetch("/api/search/work-suggestions/", {
+        headers: {
+          Authorization: "Bearer " + AuthManager.getAccessToken(),
+        },
+      });
+      const data = await response.json();
+
+      const messageEl = document.getElementById("ai-suggestions-message");
+      if (data.ai_message && data.ai_message.trim()) {
+        messageEl.textContent = data.ai_message;
+        messageEl.style.display = "block";
+      } else {
+        messageEl.style.display = "none";
+      }
+
+      const matchReasons = data.match_reasons || [];
+
+      if (data.results && data.results.length > 0) {
+        document.getElementById("ai-suggestions").innerHTML = data.results
+          .map((work, index) => {
+            const skillsHtml =
+              work.skills && work.skills.length > 0
+                ? work.skills
+                    .slice(0, 3)
+                    .map((s) => `<span class="skill-tag">${s}</span>`)
+                    .join("")
+                : '<span class="text-muted" style="font-size: 12px;">No skills specified</span>';
+
+            const clientInitial = work.client_username
+              ? work.client_username.charAt(0).toUpperCase()
+              : "?";
+            const clientName = work.client_username || "Anonymous Client";
+
+            const matchReason = matchReasons[index];
+            const reasonHtml = matchReason
+              ? `<p class="work-card-match-reason">${escapeHtml(matchReason)}</p>`
+              : "";
+
+            return `
+              <div class="work-card-clickable" onclick="showWorkDetail(${JSON.stringify(work).replace(/"/g, "&quot;")})">
+                <div class="work-card-header">
+                  <h4>${escapeHtml(work.title)}</h4>
+                  <span class="work-card-pay">$${parseFloat(work.pay_per_hour).toFixed(2)}/hr</span>
+                </div>
+                ${reasonHtml}
+                <div class="work-card-category">${escapeHtml(work.category || "Uncategorized")}</div>
+                <p class="work-card-description">${escapeHtml(work.description)}</p>
+                <div class="work-card-meta">
+                  <span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    ${work.duration_value} ${work.duration_unit}
+                  </span>
+                  ${
+                    work.location
+                      ? `
+                  <span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    ${escapeHtml(work.location)}
+                  </span>
+                  `
+                      : ""
+                  }
+                </div>
+                <div class="work-skills" style="margin-bottom: 12px;">
+                  ${skillsHtml}
+                </div>
+                <div class="work-card-client">
+                  <div class="work-card-client-avatar">${escapeHtml(clientInitial)}</div>
+                  <span class="work-card-client-name">${escapeHtml(clientName)}</span>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      } else {
+        messageEl.style.display = "none";
+        document.getElementById("ai-suggestions").innerHTML =
+          '<p class="text-muted">' +
+          (data.message ||
+            "No personalized recommendations yet. Complete your profile (tagline, bio, skills) to get matched with relevant work.") +
+          "</p>";
+      }
+    } catch (error) {
+      console.error("Error loading AI suggestions:", error);
+      document.getElementById("ai-suggestions").innerHTML =
+        '<p class="text-muted">Unable to load personalized recommendations</p>';
+    }
+  }
+
+  function escapeHtml(text) {
+    if (text == null) return "";
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Initialize
+  document.addEventListener("DOMContentLoaded", () => {
+    loadProfile();
+    loadAnalytics();
+    loadProjectRequests();
+    loadAvailableWork();
+    loadAISuggestions();
+
+    // Toggle Edit Profile Section
+    const editProfileSection = document.getElementById("edit-profile-section");
+    const toggleEditBtn = document.getElementById("toggle-edit-profile");
+    const closeEditBtn = document.getElementById("close-edit-profile");
+
+    if (toggleEditBtn && editProfileSection) {
+      toggleEditBtn.addEventListener("click", () => {
+        editProfileSection.style.display = "block";
+        // Scroll to the edit section
+        editProfileSection.scrollIntoView({ behavior: "smooth" });
+      });
+    }
+
+    if (closeEditBtn && editProfileSection) {
+      closeEditBtn.addEventListener("click", () => {
+        editProfileSection.style.display = "none";
+      });
+    }
+
+    // Cancel button in form
+    const cancelBtn = document.getElementById("cancel-btn");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        editProfileSection.style.display = "none";
+      });
+    }
+  });
+</script>
+{% endblock %}

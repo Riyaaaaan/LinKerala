@@ -1,0 +1,400 @@
+{% extends 'base.html' %} {% block title %}{{
+freelancer.display_name|default:freelancer.user.username }} - Public Profile -
+LocalFreelance AI{% endblock %} {% block extra_css %}
+<style>
+  .public-profile {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .profile-header {
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .cover-photo {
+    height: 200px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .cover-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .profile-main {
+    display: flex;
+    gap: 24px;
+    margin-top: -60px;
+    padding: 0 24px;
+    position: relative;
+  }
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid white;
+    object-fit: cover;
+    background: #e5e7eb;
+  }
+  .profile-info {
+    flex: 1;
+    padding-top: 70px;
+  }
+  .profile-name {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #111827;
+  }
+  .profile-tagline {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0 0 16px 0;
+  }
+  .profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #6b7280;
+  }
+  .availability-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  .availability-available {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .availability-busy {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .availability-unavailable {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .profile-stats {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: #6b7280;
+  }
+  .profile-section {
+    margin-bottom: 32px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #111827;
+  }
+  .profile-bio {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #374151;
+    white-space: pre-wrap;
+  }
+  .skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .skill-tag {
+    padding: 6px 12px;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .review-card {
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+  }
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .review-author {
+    font-weight: 600;
+    color: #111827;
+  }
+  .review-rating {
+    color: #f59e0b;
+  }
+  .review-text {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+  }
+  .contact-section {
+    padding: 24px;
+    background: #f0f9ff;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .contact-email {
+    font-size: 16px;
+    color: #0369a1;
+    font-weight: 500;
+  }
+  @media (max-width: 768px) {
+    .profile-main {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 16px;
+    }
+    .profile-info {
+      padding-top: 16px;
+    }
+    .profile-meta {
+      justify-content: center;
+    }
+    .profile-stats {
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="public-profile">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="cover-photo">
+      {% if freelancer.cover_photo %}
+      <img src="{{ freelancer.cover_photo }}" alt="Cover Photo" />
+      {% endif %}
+    </div>
+    <div class="profile-main">
+      <img
+        class="profile-avatar"
+        src="{% if freelancer.profile_photo %}{{ freelancer.profile_photo }}{% else %}https://via.placeholder.com/140{% endif %}"
+        alt="{{ freelancer.display_name|default:freelancer.user.username }}"
+      />
+      <div class="profile-info">
+        <h1 class="profile-name">
+          {{ freelancer.display_name|default:freelancer.user.username }}
+        </h1>
+        {% if freelancer.tagline %}
+        <p class="profile-tagline">{{ freelancer.tagline }}</p>
+        {% endif %}
+        <div class="profile-meta">
+          {% if freelancer.city or freelancer.state or freelancer.country %}
+          <span class="meta-item">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {% if freelancer.city %}{{ freelancer.city }}, {% endif %}{% if
+            freelancer.state %}{{ freelancer.state }}, {% endif %}{{
+            freelancer.country }}
+          </span>
+          {% endif %}
+          <span
+            class="availability-badge availability-{{ freelancer.availability|default:'offline' }}"
+          >
+            {% if freelancer.availability == 'available' %}
+            <span
+              style="
+                width: 8px;
+                height: 8px;
+                background: #16a34a;
+                border-radius: 50%;
+              "
+            ></span>
+            Available {% elif freelancer.availability == 'busy' %}
+            <span
+              style="
+                width: 8px;
+                height: 8px;
+                background: #d97706;
+                border-radius: 50%;
+              "
+            ></span>
+            Busy {% else %}
+            <span
+              style="
+                width: 8px;
+                height: 8px;
+                background: #6b7280;
+                border-radius: 50%;
+              "
+            ></span>
+            Unavailable {% endif %}
+          </span>
+          {% if freelancer.hourly_rate %}
+          <span class="meta-item">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path
+                d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+              ></path>
+            </svg>
+            ${{ freelancer.hourly_rate }}/hr
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="profile-stats">
+    <div class="stat-item">
+      <div class="stat-value">{{ profile.profile_views|default:0 }}</div>
+      <div class="stat-label">Profile Views</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">
+        {{ profile.avg_rating|floatformat:1|default:"0.0" }}
+      </div>
+      <div class="stat-label">Rating</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ profile.review_count|default:0 }}</div>
+      <div class="stat-label">Reviews</div>
+    </div>
+    {% if freelancer.response_time_hours %}
+    <div class="stat-item">
+      <div class="stat-value">{{ freelancer.response_time_hours }}h</div>
+      <div class="stat-label">Response Time</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Bio -->
+  {% if freelancer.bio %}
+  <div class="profile-section">
+    <h2 class="section-title">About</h2>
+    <p class="profile-bio">{{ freelancer.bio }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Skills -->
+  {% if profile.ai_tags %}
+  <div class="profile-section">
+    <h2 class="section-title">Skills</h2>
+    <div class="skills-list">
+      {% for skill in profile.ai_tags %}
+      <span class="skill-tag">{{ skill }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Work Experience -->
+  {% if freelancer.work_experience %}
+  <div class="profile-section">
+    <h2 class="section-title">Work Experience</h2>
+    <div class="profile-bio">{{ freelancer.work_experience|linebreaks }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Education -->
+  {% if freelancer.education %}
+  <div class="profile-section">
+    <h2 class="section-title">Education</h2>
+    <div class="profile-bio">{{ freelancer.education|linebreaks }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Certifications -->
+  {% if freelancer.certifications %}
+  <div class="profile-section">
+    <h2 class="section-title">Certifications</h2>
+    <div class="profile-bio">{{ freelancer.certifications|linebreaks }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Contact -->
+  <div class="profile-section">
+    <h2 class="section-title">Contact</h2>
+    <div class="contact-section">
+      <p>
+        Interested in working with {{
+        freelancer.display_name|default:freelancer.user.username }}?
+      </p>
+      {% if freelancer.email %}
+      <a href="mailto:{{ freelancer.email }}" class="contact-email"
+        >{{ freelancer.email }}</a
+      >
+      {% else %}
+      <p>Contact information not publicly available</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Reviews -->
+  {% if reviews %}
+  <div class="profile-section">
+    <h2 class="section-title">Reviews</h2>
+    <div class="reviews-list">
+      {% for review in reviews %}
+      <div class="review-card">
+        <div class="review-header">
+          <span class="review-author"
+            >{{ review.client_name|default:"Client" }}</span
+          >
+          <span class="review-rating">
+            {% for i in "12345" %} {% if forloop.counter <= review.rating %}★{%
+            else %}☆{% endif %} {% endfor %}
+          </span>
+        </div>
+        <p class="review-text">{{ review.comment }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ freelancer_name|default:'Freelancer' }} - LocalFreelance AI{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="container">
+        <div id="freelancer-profile">
+            <div class="loading">Loading profile...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const username = window.location.pathname.split('/').filter(Boolean).pop();
+
+async function loadFreelancerProfile() {
+    try {
+        const res = await fetch(`/api/freelancers/${username}/portfolio/`);
+        if (!res.ok) throw new Error('Freelancer not found');
+
+        const data = await res.json();
+
+        // Update page title
+        document.title = `${data.display_name} - LocalFreelance AI`;
+
+        const priceRange = data.price_min ? `$${data.price_min}${data.price_max ? ' - $' + data.price_max : '+'}` : 'Contact for pricing';
+
+        document.getElementById('freelancer-profile').innerHTML = `
+            <!-- Profile Header -->
+            <div class="profile-header-card">
+                <div class="profile-cover"></div>
+                <div class="profile-header-content">
+                    <div class="profile-avatar-section">
+                        <img src="${data.profile_photo || '/static/images/default-avatar.svg'}" alt="${data.display_name}" class="avatar-xxl">
+                        <span class="badge badge-${data.availability} badge-lg">${data.availability}</span>
+                    </div>
+                    <div class="profile-header-info">
+                        <h1>${data.display_name}</h1>
+                        <p class="tagline">${data.tagline || 'No tagline'}</p>
+                        <div class="profile-meta-row">
+                            <span class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                ${data.city || 'Location not set'}${data.state ? ', ' + data.state : ''}
+                            </span>
+                            <span class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                ${data.profile_views || 0} profile views
+                            </span>
+                        </div>
+                    </div>
+                    <div class="profile-header-actions">
+                        <div class="price-display">
+                            <span class="price-label">Starting at</span>
+                            <span class="price-value">${priceRange}</span>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="contact-btn" class="btn btn-primary btn-lg">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                Contact
+                            </button>
+                            <button id="bookmark-btn" class="btn btn-outline btn-lg">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-content-grid">
+                <!-- Main Content -->
+                <div class="profile-main">
+                    <!-- Stats -->
+                    <div class="profile-stats-card">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--accent)">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value">${data.avg_rating?.toFixed(1) || '0.0'}</span>
+                                <span class="stat-label">Rating</span>
+                            </div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value">${data.review_count || 0}</span>
+                                <span class="stat-label">Reviews</span>
+                            </div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value">${data.activity_score || 0}</span>
+                                <span class="stat-label">Activity Score</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About -->
+                    <div class="profile-section-card">
+                        <h2>About</h2>
+                        <p class="bio-text">${data.bio || 'No bio provided yet.'}</p>
+                    </div>
+
+                    <!-- Portfolio -->
+                    ${data.portfolio_items?.length ? `
+                    <div class="profile-section-card">
+                        <h2>Portfolio</h2>
+                        <div class="portfolio-grid">
+                            ${data.portfolio_items.map(item => `
+                                <div class="portfolio-item">
+                                    <img src="${item.media_url}" alt="${item.title}" loading="lazy">
+                                    <div class="portfolio-overlay">
+                                        <h4>${item.title}</h4>
+                                        <p>${item.description || ''}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Reviews Section -->
+                    <div class="profile-section-card">
+                        <h2>Reviews</h2>
+                        <div class="reviews-placeholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <p>No reviews yet</p>
+                            <span>Be the first to hire this freelancer!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="profile-sidebar">
+                    <!-- Quick Info -->
+                    <div class="sidebar-card">
+                        <h3>Quick Info</h3>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="info-label">Availability</span>
+                                <span class="badge badge-${data.availability}">${data.availability}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Response Time</span>
+                                <span class="info-value">Usually within 24 hours</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Location</span>
+                                <span class="info-value">${data.city || 'Not specified'}${data.state ? ', ' + data.state : ''}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Member Since</span>
+                                <span class="info-value">2024</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Similar Freelancers -->
+                    <div class="sidebar-card">
+                        <h3>Similar Freelancers</h3>
+                        <p class="text-muted">Coming soon...</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Log profile view
+        fetch(`/api/analytics/log/${data.id}/`, { method: 'POST' });
+
+        // Setup contact button - use mailto to open email client
+        document.getElementById('contact-btn')?.addEventListener('click', () => {
+            if (data.email) {
+                // Open email client with freelancer's email pre-filled
+                const subject = encodeURIComponent('Inquiry from LocalFreelance AI');
+                const body = encodeURIComponent(`Hi ${data.display_name},\n\nI found your profile on LocalFreelance AI and I'm interested in working with you.\n\nBest regards`);
+                window.location.href = `mailto:${data.email}?subject=${subject}&body=${body}`;
+            } else {
+                showToast('This freelancer has not provided an email address', 'error');
+            }
+        });
+
+        // Setup bookmark button
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        bookmarkBtn?.addEventListener('click', async () => {
+            try {
+                const token = AuthManager.getAccessToken();
+                if (!token) {
+                    showToast('Please login to save freelancers', 'error');
+                    window.location.href = '/login/';
+                    return;
+                }
+
+                const res = await fetch(`/api/freelancers/${data.id}/bookmark/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.bookmarked) {
+                        showToast('Freelancer saved to bookmarks!', 'success');
+                        bookmarkBtn.classList.add('btn-primary');
+                        bookmarkBtn.classList.remove('btn-outline');
+                    } else {
+                        showToast('Freelancer removed from bookmarks', 'success');
+                        bookmarkBtn.classList.remove('btn-primary');
+                        bookmarkBtn.classList.add('btn-outline');
+                    }
+                } else if (res.status === 401) {
+                    showToast('Please login to save freelancers', 'error');
+                    window.location.href = '/login/';
+                } else if (res.status === 403) {
+                    const errorData = await res.json();
+                    showToast(errorData.error || 'Only clients can bookmark freelancers', 'error');
+                } else {
+                    showToast('Failed to save freelancer', 'error');
+                }
+            } catch (error) {
+                console.error('Bookmark error:', error);
+                showToast('An error occurred', 'error');
+            }
+        });
+
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        document.getElementById('freelancer-profile').innerHTML = `
+            <div class="error-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h2>Freelancer Not Found</h2>
+                <p>The profile you're looking for doesn't exist or has been removed.</p>
+                <a href="/search/" class="btn btn-primary">Browse Freelancers</a>
+            </div>
+        `;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadFreelancerProfile);
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - LocalFreelance AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>Welcome Back</h1>
+            <p class="auth-subtitle">Login to your account</p>
+
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+
+            <div class="auth-footer">
+                <p class="auth-divider"><span>or</span></p>
+                <p class="auth-alt-action">
+                    Want to work as a freelancer?
+                    <a href="/register/freelancer/" class="btn btn-outline btn-block">Sign up as Freelancer</a>
+                </p>
+                <p>Don't have an account? <a href="/register/">Sign up as a client</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const res = await fetch('/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            AuthManager.setTokens(data.tokens.access, data.tokens.refresh);
+            showToast('Login successful!', 'success');
+            setTimeout(() => {
+                window.location.href = data.user.role === 'freelancer'
+                    ? '/dashboard/freelancer/'
+                    : '/dashboard/client/';
+            }, 1000);
+        } else {
+            showToast(data.error || 'Login failed', 'error');
+        }
+    } catch (error) {
+        showToast('An error occurred', 'error');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}LocalFreelance AI{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'css/main.css' %}"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <nav class="nav">
+          <a href="/" class="logo">
+            <span class="logo-icon">&#128161;</span>
+            LocalFreelance AI
+          </a>
+          <div class="nav-links" id="nav-links">
+            <!-- Navigation will be rendered by JavaScript based on auth status -->
+            <span class="nav-loading">Loading...</span>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main-content">{% block content %}{% endblock %}</main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>LocalFreelance AI</h3>
+            <p>
+              Connecting local talent with clients — zero commissions, 100%
+              fair.
+            </p>
+          </div>
+          <div class="footer-section">
+            <h4>For Freelancers</h4>
+            <a href="/register/freelancer/">Create Portfolio</a>
+            <a href="/dashboard/freelancer/">Dashboard</a>
+          </div>
+          <div class="footer-section">
+            <h4>For Clients</h4>
+            <a href="/search/">Find Freelancers</a>
+            <a href="/register/">Sign Up</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2026 LinKerala AI. Built by Linkerala Team.</p>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toast-container"></div>
+
+    <script src="{% static 'js/utils.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <style>
+      .activity-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .activity-status {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .status-available {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .status-busy {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .status-offline {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+      .activity-select {
+        padding: 4px 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 12px;
+        background: white;
+        cursor: pointer;
+      }
+      .btn-warning {
+        background-color: #f59e0b;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+      }
+      .btn-warning:hover {
+        background-color: #d97706;
+      }
+    </style>
+    <script>
+      // Toggle freelancer activity status
+      async function toggleActivity(status) {
+        try {
+          const response = await fetch("/api/auth/freelancer/profile/", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${AuthManager.getAccessToken()}`,
+            },
+            body: JSON.stringify({ availability: status }),
+          });
+
+          if (response.ok) {
+            // Update the status display
+            const statusEl = document.getElementById("nav-activity-status");
+            const statusLabel =
+              status === "available"
+                ? "Available"
+                : status === "busy"
+                  ? "Busy"
+                  : "Offline";
+            const statusClass =
+              status === "available"
+                ? "status-available"
+                : status === "busy"
+                  ? "status-busy"
+                  : "status-offline";
+
+            statusEl.textContent = statusLabel;
+            statusEl.className = "activity-status " + statusClass;
+
+            showToast("Status updated to " + statusLabel, "success");
+          } else {
+            showToast("Failed to update status", "error");
+          }
+        } catch (error) {
+          console.error("Error updating status:", error);
+          showToast("Error updating status", "error");
+        }
+      }
+    </script>
+    <script>
+      // Render navigation based on JWT authentication
+      document.addEventListener("DOMContentLoaded", async function () {
+        const navLinks = document.getElementById("nav-links");
+
+        if (!AuthManager.isAuthenticated()) {
+          // Not logged in - show login/signup buttons
+          navLinks.innerHTML = `
+                <a href="/login/">Login</a>
+                <a href="/register/" class="btn btn-primary">Get Started</a>
+            `;
+          return;
+        }
+
+        try {
+          // Fetch user info to get role
+          const res = await fetch("/api/auth/me/", {
+            headers: {
+              Authorization: `Bearer ${AuthManager.getAccessToken()}`,
+            },
+          });
+
+          if (!res.ok) {
+            // Token might be invalid, clear and show login
+            AuthManager.logout();
+            return;
+          }
+
+          const user = await res.json();
+
+          if (user.role === "freelancer") {
+            // Get freelancer's availability status
+            const availability = user.profile?.availability || "offline";
+            const availabilityLabel =
+              availability === "available"
+                ? "Available"
+                : availability === "busy"
+                  ? "Busy"
+                  : "Offline";
+            const availabilityClass =
+              availability === "available"
+                ? "status-available"
+                : availability === "busy"
+                  ? "status-busy"
+                  : "status-offline";
+
+            // Freelancer navigation with activity toggle
+            navLinks.innerHTML = `
+                    <a href="/dashboard/freelancer/">Dashboard</a>
+                    <a href="/search/">Browse Jobs</a>
+                    <a href="/bookmarks/">Bookmarks</a>
+                    <div class="activity-toggle">
+                        <span class="activity-status ${availabilityClass}" id="nav-activity-status">${availabilityLabel}</span>
+                        <select id="activity-select" class="activity-select" onchange="toggleActivity(this.value)">
+                            <option value="available" ${availability === "available" ? "selected" : ""}>Available</option>
+                            <option value="busy" ${availability === "busy" ? "selected" : ""}>Busy</option>
+                            <option value="offline" ${availability === "offline" ? "selected" : ""}>Offline</option>
+                        </select>
+                    </div>
+                    <button id="logout-btn" class="btn btn-outline">Logout</button>
+                `;
+          } else {
+            // Client navigation
+            navLinks.innerHTML = `
+                    <a href="/dashboard/client/">Dashboard</a>
+                    <a href="/search/">Browse</a>
+                    <a href="/bookmarks/">Bookmarks</a>
+                    <button id="profile-nav-btn" class="btn btn-outline btn-sm">Profile</button>
+                    <button id="logout-btn" class="btn btn-outline">Logout</button>
+                `;
+
+            // Attach profile button handler
+            const profileNavBtn = document.getElementById("profile-nav-btn");
+            if (profileNavBtn) {
+              profileNavBtn.addEventListener("click", () => {
+                window.location.href = "/profile/";
+              });
+            }
+          }
+
+          // Re-attach logout handler
+          const logoutBtn = document.getElementById("logout-btn");
+          if (logoutBtn) {
+            logoutBtn.addEventListener("click", async () => {
+              const refresh = AuthManager.getRefreshToken();
+              if (refresh) {
+                try {
+                  await fetch("/api/auth/logout/", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${AuthManager.getAccessToken()}`,
+                    },
+                    body: JSON.stringify({ refresh }),
+                  });
+                } catch (e) {
+                  // Ignore errors
+                }
+              }
+              AuthManager.logout();
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching user info:", error);
+          // On error, show login buttons
+          navLinks.innerHTML = `
+                <a href="/login/">Login</a>
+                <a href="/register/" class="btn btn-primary">Get Started</a>
+            `;
+        }
+      });
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
