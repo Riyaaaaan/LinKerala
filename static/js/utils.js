@@ -7,12 +7,14 @@ function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
   toast.textContent = message;
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
+    toast.classList.add('toast-exit');
+    setTimeout(() => toast.remove(), 280);
   }, 3000);
 }
 
