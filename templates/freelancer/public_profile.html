@@ -1,6 +1,6 @@
-{% extends 'base.html' %} {% block title %}{{
-freelancer.display_name|default:freelancer.user.username }} - Public Profile -
-LocalFreelance AI{% endblock %} {% block extra_css %}
+{% extends 'base.html' %}
+{% block title %}{{ freelancer.display_name|default:freelancer.user.username }} - Public Profile - LocalFreelance AI{% endblock %}
+{% block extra_css %}
 <style>
   .public-profile {
     max-width: 900px;
@@ -228,9 +228,7 @@ LocalFreelance AI{% endblock %} {% block extra_css %}
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
               <circle cx="12" cy="10" r="3"></circle>
             </svg>
-            {% if freelancer.city %}{{ freelancer.city }}, {% endif %}{% if
-            freelancer.state %}{{ freelancer.state }}, {% endif %}{{
-            freelancer.country }}
+            {% if freelancer.city %}{{ freelancer.city }}, {% endif %}{% if freelancer.state %}{{ freelancer.state }}, {% endif %}{{ freelancer.country }}
           </span>
           {% endif %}
           <span
@@ -364,9 +362,9 @@ LocalFreelance AI{% endblock %} {% block extra_css %}
         Interested in working with {{
         freelancer.display_name|default:freelancer.user.username }}?
       </p>
-      {% if freelancer.email %}
-      <a href="mailto:{{ freelancer.email }}" class="contact-email"
-        >{{ freelancer.email }}</a
+      {% if freelancer.user.email %}
+      <a href="mailto:{{ freelancer.user.email }}" class="contact-email"
+        >{{ freelancer.user.email }}</a
       >
       {% else %}
       <p>Contact information not publicly available</p>
@@ -386,8 +384,7 @@ LocalFreelance AI{% endblock %} {% block extra_css %}
             >{{ review.client_name|default:"Client" }}</span
           >
           <span class="review-rating">
-            {% for i in "12345" %} {% if forloop.counter <= review.rating %}★{%
-            else %}☆{% endif %} {% endfor %}
+            {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
           </span>
         </div>
         <p class="review-text">{{ review.comment }}</p>
